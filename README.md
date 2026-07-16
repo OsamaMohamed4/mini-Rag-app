@@ -1,98 +1,139 @@
-# mini-rag
+# mini-RAG — Document Q&A with Retrieval-Augmented Generation
 
-This is a minimal implementation of the RAG model for question answering.
+A production-style **Retrieval-Augmented Generation (RAG)** service built with **FastAPI**. Upload your own documents, and the system chunks, embeds, and indexes them in a vector database — then answers natural-language questions grounded in *your* data instead of the LLM's memory.
 
-## The Course
+![Python](https://img.shields.io/badge/Python-3.8%2B-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white)
+![Qdrant](https://img.shields.io/badge/Qdrant-VectorDB-DC244C)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+![License](https://img.shields.io/badge/License-Apache%202.0-blue)
 
-This is an educational project where all of the codes where explained (step by step) via a set of `Arabic` youtube videos. Please check the list:
+---
 
-| # | Title                                    | Link                                                                                                 | Codes                                              |
-|---|------------------------------------------|------------------------------------------------------------------------------------------------------|----------------------------------------------------|
-| 1 | About the Course ماذا ولمـــاذا          | [Video](https://www.youtube.com/watch?v=Vv6e2Rb1Q6w&list=PLvLvlVqNQGHCUR2p0b8a0QpVjDUg50wQj)         | NA                                                 |
-| 2 | What will we build ماذا سنبنى في المشروع | [Video](https://www.youtube.com/watch?v=_l5S5CdxE-Q&list=PLvLvlVqNQGHCUR2p0b8a0QpVjDUg50wQj&index=2) | NA                                                 |
-| 3 | Setup your tools الأدوات الأساسية        | [Video](https://www.youtube.com/watch?v=VSFbkFRAT4w&list=PLvLvlVqNQGHCUR2p0b8a0QpVjDUg50wQj&index=3) | NA                                                 |
-| 4 | Project Architecture                     | [Video](https://www.youtube.com/watch?v=Ei_nBwBbFUQ&list=PLvLvlVqNQGHCUR2p0b8a0QpVjDUg50wQj&index=4) | [branch](https://github.com/bakrianoo/mini-rag/tree/tut-001) |
-| 5 | Welcome to FastAPI                       | [Video](https://www.youtube.com/watch?v=cpOuCdzN_Mo&list=PLvLvlVqNQGHCUR2p0b8a0QpVjDUg50wQj&index=5) | [branch](https://github.com/bakrianoo/mini-rag/tree/tut-002) |
-| 6 | Nested Routes + Env Values               | [Video](https://www.youtube.com/watch?v=CrR2Bz2Y7Hw&list=PLvLvlVqNQGHCUR2p0b8a0QpVjDUg50wQj&index=6) | [branch](https://github.com/bakrianoo/mini-rag/tree/tut-003) |
-| 7 | Uploading a File                         | [Video](https://www.youtube.com/watch?v=5alMKCbFqWs&list=PLvLvlVqNQGHCUR2p0b8a0QpVjDUg50wQj&index=7) | [branch](https://github.com/bakrianoo/mini-rag/tree/tut-004) |
-| 8 | File Processing                         | [Video](https://www.youtube.com/watch?v=gQgr2iwtSBw) | [branch](https://github.com/bakrianoo/mini-rag/tree/tut-005) |
-| 9 | Docker - MongoDB - Motor                         | [Video](https://www.youtube.com/watch?v=2NOKWm0xJAk) | [branch](https://github.com/bakrianoo/mini-rag/tree/tut-006) |
-| 10 | Mongo Schemes and Models                        | [Video](https://www.youtube.com/watch?v=zgcnnMJXXV8) | [branch](https://github.com/bakrianoo/mini-rag/tree/tut-007) |
-| 11 | Mongo Indexing                        | [Video](https://www.youtube.com/watch?v=iO8FAmUVcjE) | [branch](https://github.com/bakrianoo/mini-rag/tree/tut-008) |
-| 12 | Data Pipeline Enhancements                        | [Video](https://www.youtube.com/watch?v=4x1DuezZBDU) | [branch](https://github.com/bakrianoo/mini-rag/tree/tut-008) |
-| 13 | Checkpoint-1                        | [Video](https://www.youtube.com/watch?v=7xIsZkCisPk) | [branch](https://github.com/bakrianoo/mini-rag/tree/tut-008) |
-| 14 | LLM Factory                        | [Video](https://www.youtube.com/watch?v=5TKRIFtIQAY) | [branch](https://github.com/bakrianoo/mini-rag/tree/tut-008) |
-| 15 | Vector DB Factory                        | [Video](https://www.youtube.com/watch?v=JtS9UkvF_10) | [branch](https://github.com/bakrianoo/mini-rag/tree/tut-009) |
-| 16 | Semantic Search                       | [Video](https://www.youtube.com/watch?v=V3swQKokJW8) | [branch](https://github.com/bakrianoo/mini-rag/tree/tut-010) |
-| 17 | Augmented Answers                       | [Video](https://www.youtube.com/watch?v=1Wx8BoM5pLU) | [branch](https://github.com/bakrianoo/mini-rag/tree/tut-011) |
-| 18 | Checkpoint-1 + Fix Issues                       | [Video](https://youtu.be/6zG4Idxldvg) | [branch](https://github.com/bakrianoo/mini-rag/tree/tut-012) |
-| 19 | Ollama Local LLM Server                       | [Video](https://youtu.be/-epZ1hAAtrs) | [branch](https://github.com/bakrianoo/mini-rag/tree/tut-012) |
+## Why this project
 
+LLMs hallucinate when asked about private or domain-specific documents. This service solves that by retrieving the most relevant chunks of the user's own files at query time and letting the LLM answer **only from that context** — the core pattern behind modern enterprise AI assistants.
 
-## Requirements
+## Key Features
 
-- Python 3.8 or later
+- **End-to-end RAG pipeline** — file upload → chunking → embedding → vector indexing → semantic search → augmented answer
+- **Provider-agnostic LLM factory** — swap **OpenAI**, **Cohere**, or a local **Ollama** server through configuration, not code changes
+- **Pluggable vector store** — Qdrant today; the factory pattern keeps other vector DBs one adapter away
+- **Async document & metadata store** — MongoDB with Motor for non-blocking I/O
+- **Project-scoped collections** — multiple document sets isolated per project ID
+- **Dockerized infrastructure** — one `docker compose up` for the full stack
 
-#### Install Python using MiniConda
+## Architecture
 
-1) Download and install MiniConda from [here](https://docs.anaconda.com/free/miniconda/#quick-command-line-install)
-2) Create a new environment using the following command:
-```bash
-$ conda create -n mini-rag python=3.8
-```
-3) Activate the environment:
-```bash
-$ conda activate mini-rag
-```
-
-### (Optional) Setup you command line interface for better readability
-
-```bash
-export PS1="\[\033[01;32m\]\u@\h:\w\n\[\033[00m\]\$ "
+```mermaid
+flowchart LR
+    subgraph Client
+        U[User / API Consumer]
+    end
+    subgraph API [FastAPI Service]
+        R[Routes] --> C[Controllers]
+        C --> LF[LLM Factory<br/>OpenAI · Cohere · Ollama]
+        C --> VF[VectorDB Factory<br/>Qdrant]
+    end
+    subgraph Storage
+        M[(MongoDB<br/>documents & metadata)]
+        Q[(Qdrant<br/>vector index)]
+    end
+    U -->|upload / ask| R
+    C --> M
+    VF --> Q
+    LF -->|embeddings & completions| EXT[LLM Provider]
 ```
 
-### (Optional) Run Ollama Local LLM Server using Colab + Ngrok
+### Query flow
 
-- Check the [notebook](https://colab.research.google.com/drive/1KNi3-9KtP-k-93T3wRcmRe37mRmGhL9p?usp=sharing) + [Video](https://youtu.be/-epZ1hAAtrs)
-
-## Installation
-
-### Install the required packages
-
-```bash
-$ pip install -r requirements.txt
+```mermaid
+sequenceDiagram
+    participant User
+    participant API as FastAPI
+    participant VDB as Qdrant
+    participant LLM as LLM Provider
+    User->>API: POST /answer (question)
+    API->>LLM: embed(question)
+    API->>VDB: semantic search (top-k chunks)
+    VDB-->>API: relevant context
+    API->>LLM: prompt = context + question
+    LLM-->>API: grounded answer
+    API-->>User: answer + sources
 ```
 
-### Setup the environment variables
+## Project Structure
 
-```bash
-$ cp .env.example .env
+```
+src/
+├── main.py           # FastAPI entrypoint
+├── routes/           # API endpoints (upload, process, search, answer)
+├── controllers/      # Business logic for each pipeline stage
+├── models/           # MongoDB schemes & data models
+├── stores/
+│   ├── llm/          # LLM provider factory (OpenAI / Cohere / Ollama)
+│   └── vectordb/     # Vector store factory (Qdrant)
+├── helpers/          # Config & utilities
+└── assets/           # Uploaded files & artifacts
+docker/               # docker-compose (MongoDB, services)
 ```
 
-Set your environment variables in the `.env` file. Like `OPENAI_API_KEY` value.
+## Getting Started
 
-## Run Docker Compose Services
+### 1. Requirements
+- Python **3.8+** (Miniconda recommended)
+- Docker & Docker Compose
 
-```bash
-$ cd docker
-$ cp .env.example .env
-```
-
-- update `.env` with your credentials
-
-
+### 2. Environment
 
 ```bash
-$ cd docker
-$ sudo docker compose up -d
+conda create -n mini-rag python=3.8 && conda activate mini-rag
+pip install -r src/requirements.txt
+
+cp src/.env.example src/.env        # set OPENAI_API_KEY / COHERE_API_KEY, DB settings
+cp docker/.env.example docker/.env  # set MongoDB credentials
 ```
 
-## Run the FastAPI server
+### 3. Run infrastructure
 
 ```bash
-$ uvicorn main:app --reload --host 0.0.0.0 --port 5000
+cd docker
+docker compose up -d
 ```
 
-## POSTMAN Collection
+### 4. Run the API
 
-Download the POSTMAN collection from [/assets/mini-rag-app.postman_collection.json](/assets/mini-rag-app.postman_collection.json)
+```bash
+cd src
+uvicorn main:app --reload --host 0.0.0.0 --port 5000
+```
+
+Interactive API docs: `http://localhost:5000/docs`
+
+### Optional: local LLM via Ollama
+The LLM factory supports pointing `GENERATION_BACKEND` at an Ollama server, so the whole pipeline can run without paid API keys.
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| API | FastAPI, Uvicorn, Pydantic |
+| LLMs | OpenAI, Cohere, Ollama (factory pattern) |
+| Vector DB | Qdrant |
+| Metadata store | MongoDB + Motor (async) |
+| Infra | Docker Compose |
+
+## What I focused on
+
+- Clean separation of concerns (routes → controllers → stores) so providers are swappable
+- Semantic-search relevance across larger document sets (chunking strategy + top-k tuning)
+- Fully async I/O path from upload to answer
+
+## Acknowledgments
+
+Built while following [@bakrianoo](https://github.com/bakrianoo)'s excellent Arabic **mini-RAG** course, then extended and maintained as my own implementation.
+
+## License
+
+Apache-2.0 — see [LICENSE](LICENSE).
